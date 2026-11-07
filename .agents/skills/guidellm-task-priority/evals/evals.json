@@ -1,0 +1,45 @@
+{
+  "skill_name": "guidellm-task-priority",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Rank GuideLLM tasks from these sources only. Do not search GitHub or the web. Write the priority document.\n\nLink index:\n- RhoAI 3.5 roadmap: GA on 2026-11-15 requires the GuideLLM container image to be published.\n\nGitHub issues already retrieved from vllm-project/guidellm:\n- #1813, assignee yuchen, milestone v0.8, title: GuideLLM container image for RHOAI 3.5.\n- #900, unassigned, no milestone, title: GuideLLM audio modality support.\n\nUser feedback:\nHigh priority\n- Percentile latency should include scheduler delay\nSecondary priority\n- Audio modality support",
+      "expected_output": "A priority markdown file whose Now list leads with the container image because of the 2026-11-15 GA date and GitHub #1813, puts latency percentiles ahead of audio because latency is high-priority feedback, and marks latency as needing an issue.",
+      "files": [],
+      "expectations": [
+        "Writes a markdown file under planning/guidellm/ whose name matches YYYY-MM-DD-task-priority.md",
+        "Ranks the GuideLLM container image before latency percentiles and before audio modality",
+        "Cites the 2026-11-15 date and GitHub issue 1813 as the reason the container image ranks first",
+        "Ranks percentile latency ahead of audio modality",
+        "Marks percentile latency as having no GitHub issue rather than inventing a number",
+        "Does not treat Jira as the GuideLLM work tracker",
+        "Does not claim any GitHub issue was opened or edited"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Schedule GuideLLM work from the sources below. GitHub is unavailable for this run; continue without issues and do not invent issue numbers. Write the priority document.\n\nProgram schedule: llm-d 1.4 feature freeze is 2026-12-01 and the roadmap says it depends on GuideLLM DAG scheduling.\n\nUser feedback:\nHigh priority\n- DAG scheduling for multi-step traces\nSecondary priority\n- Dark mode for the report UI",
+      "expected_output": "DAG scheduling is Now because of the 2026-12-01 freeze and the high-priority list. Dark mode is Later. Both are gaps with no invented issue numbers, and the document says GitHub was unavailable.",
+      "files": [],
+      "expectations": [
+        "Puts DAG scheduling in Now and cites the 2026-12-01 feature freeze",
+        "Puts dark mode for the report UI in Later or an equivalent lower bucket because it is secondary feedback with no program date",
+        "Does not invent a GitHub issue number",
+        "States that GitHub issues were unavailable or that no issues were retrieved"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Prioritize these GuideLLM items. Use only this text. The team can take one Now item.\n\nRoadmap: OpenShift AI 3.6 code freeze 2026-10-30 depends on GuideLLM trace export.\n\nGitHub issues in vllm-project/guidellm:\n- #410, assignee danachen, milestone due 2026-10-28, title: GuideLLM trace export.\n- #411, no milestone, title: GuideLLM notebook quickstart.\n\nFeedback:\nHigh priority\n- Notebook quickstart for new users\nSecondary priority\n- Trace export polish",
+      "expected_output": "Trace export is the single Now item because the 2026-10-30 freeze depends on it and #410 is assigned. Notebook quickstart is Next even though it is high-priority feedback. The conflict between feedback order and the freeze date is written down. Capacity overload is acknowledged because only one Now slot was allowed.",
+      "files": [],
+      "expectations": [
+        "Puts trace export as the only Now item",
+        "Cites the 2026-10-30 code freeze and GitHub issue 410",
+        "Puts notebook quickstart after trace export and identifies it as high-priority feedback",
+        "Includes a conflict note that high-priority feedback wanted the notebook quickstart while the program date forces trace export first",
+        "Does not put both items in Now"
+      ]
+    }
+  ]
+}

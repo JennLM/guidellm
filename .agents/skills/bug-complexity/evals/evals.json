@@ -1,0 +1,43 @@
+{
+  "skill_name": "bug-complexity",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Estimate bug complexity for these open issues only. Do not search GitHub.\n\n#501 title: README says recieve. Body: Change the typo recieve to receive in README.md.\n#502 title: Warmup requests counted in results. Body: scheduler.py adds warmup requests into the result total. Expected: warmup requests are excluded. The addition is in the result aggregation function.\n#503 title: HTML and CSV p99 disagree after errors. Body: After a failed request, the HTML report p99 and the CSV p99 differ. The cause is not known.",
+      "expected_output": "A table with Size and Reasoning columns. #501 is xs, #502 is s, #503 is l. Rows are ordered xl-to-xs, so #503, then #502, then #501.",
+      "files": [],
+      "expectations": [
+        "The table has a Size column whose only values are xs, s, m, l, xl, or xxl",
+        "The table has a Reasoning column with one short reason per issue",
+        "Issue 501 is sized xs",
+        "Issue 502 is sized s",
+        "Issue 503 is sized l",
+        "Issue 503 appears before issue 502, and issue 502 appears before issue 501",
+        "Does not invent an issue number that was not in the prompt"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How many story points to fix this open issue? Do not fetch GitHub.\n\n#880 title: Add a proprietary inference backend. Body: Need a new backend with streaming, tool calls, and a mock server. No design yet. Nothing in the current OpenAI backend can be reused as-is.",
+      "expected_output": "One row for #880 sized xxl, with reasoning that closing it is a new backend and needs a design first.",
+      "files": [],
+      "expectations": [
+        "Issue 880 is sized xxl",
+        "The reasoning says the work is a new backend or that a design is required before the fix",
+        "The size value is the label xxl and not a Fibonacci number in its own column"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Size the open GuideLLM bugs. GitHub is unavailable for this run. Continue without issues and do not invent issue numbers.",
+      "expected_output": "The reply says GitHub could not be read and asks the user to log in with gh auth login. It does not include a sized issue table.",
+      "files": [],
+      "expectations": [
+        "Says GitHub issues could not be retrieved or that login is required",
+        "Tells the user to run gh auth login",
+        "Does not invent a GitHub issue number",
+        "Does not present sized issues as if the list was fetched"
+      ]
+    }
+  ]
+}

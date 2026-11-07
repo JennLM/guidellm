@@ -57,4 +57,12 @@ SLO-Aware Benchmarking and Evaluation Platform for Optimizing Real-World LLM Inf
 
   [:octicons-arrow-right-24: API Reference](./reference/guidellm/index.md)
 
+- :material-clipboard-list:{ .lg .middle } GuideLLM Change Requests
+
+  ______________________________________________________________________
+
+  Every GuideLLM issue, with the date it was filed, whether it is open, and the priority and complexity of the fix.
+
+  [:octicons-arrow-right-24: GuideLLM Change Requests](./developer/update-requests.md)
+
 </div>

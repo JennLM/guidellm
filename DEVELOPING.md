@@ -105,11 +105,15 @@ Assisted-by: GitHub Copilot gpt-4o
 
 Shared [Agent Skills](https://agentskills.io/specification) live under `.agents/skills/` (the cross-client convention). Cursor loads that path natively; Claude Code follows the tracked `.claude/skills` symlink to the same directory.
 
-| Skill                     | Purpose                                                                                                                                                         |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `guidellm-weekly-summary` | Generate an externally shareable nested-list summary of GuideLLM GitHub activity for the past week (`scripts/fetch_activity.sh` gathers PR/issue JSON via `gh`) |
+| Skill                              | Purpose                                                                                                                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `guidellm-weekly-summary`          | Generate an externally shareable nested-list summary of GuideLLM GitHub activity for the past week (`scripts/fetch_activity.sh` gathers PR/issue JSON via `gh`)                                         |
+| `comparing-guidellm-competition`   | Compare GuideLLM capabilities against named competitors (inference-perf, AIPerf, genai-bench) and write a dated add/watch/skip gap analysis                                                             |
+| `guidellm-review-translation`      | Review a translation PR: compare non-English docs to the English source and report major errors for English-speaking reviewers                                                                         |
+| `bug-complexity`                   | Estimate how complicated each open GitHub issue is to fix, using xs, s, m, l, xl, and xxl                                                                              |
+| `guidellm-task-priority`           | Rank GuideLLM work from program dates, user feedback, and open GitHub issues into Now, Next, Later, and Park                                                           |
 
-Ask for a weekly summary, team activity update, or status digest of GuideLLM to invoke it. Requires the `gh` CLI authenticated for `vllm-project/guidellm`.
+Ask for a weekly summary, team activity update, or status digest of GuideLLM to invoke the weekly skill (`gh` required). Ask for a functionality comparison vs AIPerf / inference-perf / genai-bench to invoke the competition skill.
 
 ## Running Quality, Style, and Type Checks
 

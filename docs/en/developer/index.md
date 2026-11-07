@@ -36,4 +36,12 @@ GuideLLM is an open-source project that values community contributions. We maint
 
   [:octicons-arrow-right-24: Development Guide](developing.md)
 
+- :material-clipboard-list:{ .lg .middle } GuideLLM Change Requests
+
+  ______________________________________________________________________
+
+  Every GuideLLM issue, with the date it was filed, whether it is open, and the priority and complexity of the fix.
+
+  [:octicons-arrow-right-24: GuideLLM Change Requests](update-requests.md)
+
 </div>

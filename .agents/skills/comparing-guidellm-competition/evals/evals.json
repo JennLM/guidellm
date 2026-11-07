@@ -1,0 +1,27 @@
+{
+  "skill_name": "comparing-guidellm-competition",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Refresh the GuideLLM vs competition functionality comparison for today using the known competitor list.",
+      "expected_output": "A dated Google Doc in Drive folder 1cTkqKcKgetyJL2CSIoLD4RTFDTjIMywX titled GuideLLM functionality compare — YYYY-MM-DD, covering inference-perf, AIPerf, and genai-bench, with a matrix, gaps, and add/watch/skip recommendations. Chat leads with the Doc URL.",
+      "files": [],
+      "expectations": [
+        "Report filename contains today's date",
+        "Competitors are exactly inference-perf, AIPerf, and genai-bench unless the Google Doc changed",
+        "Each gap has an Add, Watch, or Skip verdict",
+        "GuideLLM inventory cites local registries or docs, not only the README table"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "What can AIPerf do that GuideLLM still cannot, and should we add any of it?",
+      "expected_output": "A gap list focused on AIPerf with recommendations, still written as the dated compare document (or a clearly labeled subset) rather than an ad-hoc chat table.",
+      "files": [],
+      "expectations": [
+        "Names GPU/DCGM, extra endpoint types, or Kubernetes operator only if still missing after checking this repo",
+        "Does not recommend adding MMLU/accuracy benches as core GuideLLM work"
+      ]
+    }
+  ]
+}
