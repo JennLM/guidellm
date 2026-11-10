@@ -21,6 +21,35 @@ weight: -2
 #gl-issue-board .gl-update{border:1px solid #1e3a5f;background:#1e3a5f;color:#fff;border-radius:999px;padding:.35rem .8rem;font:inherit;font-size:.82rem;font-weight:650;cursor:pointer}
 #gl-issue-board .gl-update:hover{background:#16324f}
 #gl-issue-board .gl-update:disabled{opacity:.65;cursor:wait}
+.gl-modal{position:fixed;inset:0;z-index:40;background:rgba(15,23,32,.55);display:flex;align-items:flex-start;justify-content:center;padding:4vh 1.25rem}
+.gl-modal[hidden]{display:none}
+.gl-modal-card{width:min(1280px,100%);max-height:90vh;display:flex;flex-direction:column;background:#fff;color:#1b1f24;border:2px solid #1e3a5f;border-radius:12px;box-shadow:0 24px 60px rgba(15,23,32,.35);overflow:hidden;font-family:Roboto,Helvetica,Arial,sans-serif}
+.gl-modal-bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.85rem 1rem;background:#1e3a5f;color:#fff}
+.gl-modal-bar h2{margin:0;font-size:1.05rem}
+.gl-modal-close{border:1px solid #fff;background:#fff;color:#1b1f24;border-radius:999px;padding:.3rem .75rem;font:inherit;font-size:.82rem;font-weight:650;cursor:pointer}
+.gl-modal-note{margin:0;padding:.8rem 1rem .2rem;color:#5c6570;font-size:.85rem}
+.gl-modal-scroll{margin:.7rem 1rem 1rem;max-height:68vh;overflow:auto;border:2px solid #1e3a5f;border-radius:8px;background:#fff}
+.gl-modal table{width:100%;border-collapse:collapse;min-width:980px}
+.gl-modal th,.gl-modal td{padding:.7rem .85rem;text-align:left;vertical-align:middle;border:1px solid #7b91a8}
+.gl-modal tbody td{vertical-align:top}
+.gl-modal td.gl-change{min-width:18rem;line-height:1.45;white-space:normal}
+.gl-modal th{position:sticky;top:0;background:#1e3a5f;color:#fff;z-index:2;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;border-color:#16304f;border-bottom:3px solid #498cf5}
+.gl-modal tbody tr:nth-child(even) td{background:#f4f7fb}
+.gl-modal tbody tr:hover td{background:#e7f0fc}
+.gl-modal a{color:#498cf5;font-weight:650;text-decoration:none}
+.gl-modal a:hover{text-decoration:underline}
+.gl-modal .gl-open{color:#0f6b45;font-weight:650}
+.gl-modal .gl-closed{color:#5c6570;font-weight:650}
+.gl-modal td:nth-child(1),.gl-modal td:nth-child(4),.gl-modal td:nth-child(5),.gl-modal td:nth-child(6){white-space:nowrap}
+[data-md-color-scheme="slate"] .gl-modal-card{background:#121a24;color:#e8eef5;border-color:#8eb4e8}
+[data-md-color-scheme="slate"] .gl-modal-note{color:#b7c3d1}
+[data-md-color-scheme="slate"] .gl-modal-scroll{background:#121a24;border-color:#8eb4e8}
+[data-md-color-scheme="slate"] .gl-modal th{background:#16324f;border-color:#0f243c}
+[data-md-color-scheme="slate"] .gl-modal td{border-color:#3d4f66}
+[data-md-color-scheme="slate"] .gl-modal tbody tr:nth-child(even) td{background:#1a2433}
+[data-md-color-scheme="slate"] .gl-modal tbody tr:hover td{background:#243650}
+[data-md-color-scheme="slate"] .gl-modal .gl-closed{color:#b7c3d1}
+
 #gl-issue-board .gl-pill{border:1px solid var(--gl-line);background:var(--gl-card);border-radius:999px;padding:.35rem .7rem;font-size:.82rem}
 #gl-issue-board .gl-scroll{overflow:auto;border:2px solid var(--gl-frame);border-radius:8px;background:var(--gl-card);box-shadow:0 12px 32px rgba(30,58,95,.14)}
 #gl-issue-board table{width:100%;border-collapse:collapse;min-width:860px}
@@ -358,6 +387,316 @@ weight: -2
       render();
     });
   }
+
+  var weekLoading = false;
+  function weekWindow() {
+    var until = new Date();
+    var since = new Date(until.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return {since: since.toISOString().slice(0, 10), until: until.toISOString().slice(0, 10)};
+  }
+  function githubJson(url) {
+    return fetch(url, {headers: {"Accept": "application/vnd.github+json"}}).then(function (response) {
+      if (!response.ok) throw new Error("GitHub returned " + response.status);
+      return response.json();
+    });
+  }
+  function ensureWeekModal() {
+    var modal = document.getElementById("gl-week-modal");
+    if (modal) return modal;
+    modal = document.createElement("div");
+    modal.id = "gl-week-modal";
+    modal.className = "gl-modal";
+    modal.hidden = true;
+    modal.addEventListener("click", function () { modal.hidden = true; });
+    var card = document.createElement("div");
+    card.className = "gl-modal-card";
+    card.addEventListener("click", function (event) { event.stopPropagation(); });
+    var bar = document.createElement("div");
+    bar.className = "gl-modal-bar";
+    var heading = document.createElement("h2");
+    heading.textContent = "Last week status";
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "gl-modal-close";
+    close.textContent = "Close";
+    close.addEventListener("click", function () { modal.hidden = true; });
+    bar.appendChild(heading);
+    bar.appendChild(close);
+    var note = document.createElement("p");
+    note.className = "gl-modal-note";
+    note.id = "gl-week-note";
+    var body = document.createElement("div");
+    body.className = "gl-modal-scroll";
+    body.id = "gl-week-body";
+    card.appendChild(bar);
+    card.appendChild(note);
+    card.appendChild(body);
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") modal.hidden = true;
+    });
+    return modal;
+  }
+  function cleanWeekText(text) {
+    return String(text || "")
+      .replace(/\r/g, "")
+      .replace(/<!-- begin:squash-data -->[\s\S]*/g, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/\n## Testing\b[\s\S]*/i, "")
+      .replace(/^Signed-off-by:.*$/gm, "")
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/^>.*$/gm, "")
+      .replace(/!\[[^\]]*]\([^)]*\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/https?:\/\/\S+/g, "")
+      .replace(/@([A-Za-z0-9-]+)/g, "")
+      .replace(/^#{1,6}\s+.*$/gm, "")
+      .replace(/^\s*[-*]\s+\[[ xX]\]\s+/gm, "")
+      .replace(/^\s*[-*]\s+/gm, "")
+      .replace(/`([^`]*)`/g, "$1")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/(^|\s)\*([^*]+)\*(?=\s|$)/g, "$1$2")
+      .replace(/~~([^~]+)~~/g, "$1")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  function isTemplatePrompt(text) {
+    return /^(please include a summary|describe the bug|what is the expected behavior|steps to reproduce|additional context)\b/i.test(text);
+  }
+  function isLowValue(text) {
+    return /^(thanks|thank you|lgtm|ship it|\+1|done|nit|ack|approved)[.!]*$/i.test(text);
+  }
+  function sectionText(body, headings) {
+    var text = String(body || "").replace(/\r/g, "").replace(/<!--[\s\S]*?-->/g, "");
+    for (var i = 0; i < headings.length; i++) {
+      var pattern = new RegExp("(?:^|\\n)#{1,3}[ \\t]+" + headings[i] + "[^\\n]*\\n([\\s\\S]*?)(?=\\n#{1,3}[ \\t]|$)", "i");
+      var match = text.match(pattern);
+      if (!match) continue;
+      var cleaned = cleanWeekText(match[1]);
+      if (cleaned.length > 40 && !isTemplatePrompt(cleaned)) return match[1];
+    }
+    return text;
+  }
+  function briefSentences(text, maxChars) {
+    var clean = cleanWeekText(text).replace(/[:;\s]+$/, "");
+    if (!clean || isTemplatePrompt(clean) || isLowValue(clean)) return "";
+    var sentences = [];
+    var start = 0;
+    for (var i = 0; i < clean.length; i++) {
+      var ch = clean.charAt(i);
+      if (ch !== "." && ch !== "!" && ch !== "?" && ch !== "…") continue;
+      var rest = clean.slice(i + 1);
+      if (rest === "" || /^\s+[A-Z]/.test(rest)) {
+        sentences.push(clean.slice(start, i + 1));
+        start = i + 1;
+      }
+    }
+    if (clean.slice(start).trim()) sentences.push(clean.slice(start));
+    var kept = 0;
+    var out = "";
+    for (var i = 0; i < sentences.length; i++) {
+      var sentence = sentences[i].replace(/\s+/g, " ").trim().replace(/[:;\s]+$/, "");
+      if (sentence.length < 15 || isTemplatePrompt(sentence) || isLowValue(sentence)) continue;
+      if (kept >= 2) break;
+      if (kept === 1 && out.length >= 90) break;
+      var next = out ? out + " " + sentence : sentence;
+      if (next.length > maxChars && out) break;
+      out = next;
+      kept += 1;
+      if (out.length >= maxChars) break;
+    }
+    if (!out) return "";
+    if (out.length > maxChars) {
+      var cut = out.slice(0, maxChars);
+      var lastSpace = cut.lastIndexOf(" ");
+      out = (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[ ,:;]+$/, "") + "…";
+    }
+    if (!/[.!?…]$/.test(out)) out += ".";
+    return out;
+  }
+  function inWindow(day, range) {
+    return !!day && day >= range.since && day <= range.until;
+  }
+  function weekAction(item, range) {
+    var created = (item.created_at || "").slice(0, 10);
+    var closed = (item.closed_at || "").slice(0, 10);
+    var merged = item.pull_request && item.pull_request.merged_at ? item.pull_request.merged_at.slice(0, 10) : "";
+    if (inWindow(merged, range)) return "Merged";
+    if (inWindow(closed, range) && item.state !== "open") return "Closed";
+    if (inWindow(created, range)) return "Opened";
+    return "Updated";
+  }
+  function isNoiseComment(comment) {
+    var user = comment.user || {};
+    var login = user.login || "";
+    if (user.type === "Bot" || /\[bot\]$/i.test(login)) return true;
+    return /auto-generated|Mergify Payload|coderabbit|codex-review-state|DO NOT EDIT/i.test(comment.body || "");
+  }
+  function commentsByIssue(pages) {
+    var map = {};
+    (pages || []).forEach(function (page) {
+      if (!page || !page.forEach) return;
+      page.forEach(function (comment) {
+        if (isNoiseComment(comment)) return;
+        var match = String(comment.issue_url || "").match(/\/issues\/(\d+)$/);
+        if (!match) return;
+        var number = match[1];
+        if (!map[number]) map[number] = [];
+        map[number].push(comment);
+      });
+    });
+    Object.keys(map).forEach(function (number) {
+      map[number].sort(function (a, b) {
+        if (a.created_at === b.created_at) return 0;
+        return a.created_at < b.created_at ? 1 : -1;
+      });
+    });
+    return map;
+  }
+  function latestNote(number, range, byNumber) {
+    var comments = byNumber[String(number)] || [];
+    for (var i = 0; i < comments.length; i++) {
+      var day = (comments[i].created_at || "").slice(0, 10);
+      if (!inWindow(day, range)) continue;
+      var text = briefSentences(comments[i].body, 220);
+      if (text) return text;
+    }
+    return "";
+  }
+  function weekUpdate(item, range, byNumber) {
+    var action = weekAction(item, range);
+    var note = latestNote(item.number, range, byNumber);
+    var summary = briefSentences(sectionText(item.body || "", ["Summary", "Bug Description", "Describe the bug", "Overview", "Description"]), 220);
+    var detail = action === "Updated" ? (note || summary) : (summary || note);
+    if (!detail) return action + " this week.";
+    return action + ". " + detail;
+  }
+  function releaseUpdate(release) {
+    var summary = briefSentences(sectionText(release.body || "", ["Overview", "Summary", "Description"]), 220);
+    if (!summary) return "Published this week.";
+    return "Published. " + summary;
+  }
+  function commentPage(range, page) {
+    return githubJson("https://api.github.com/repos/vllm-project/guidellm/issues/comments?since=" + encodeURIComponent(range.since + "T00:00:00Z") + "&per_page=100&sort=created&direction=desc&page=" + page).catch(function () { return []; });
+  }
+  function isWeekNoise(item) {
+    var login = item.user && item.user.login ? item.user.login : "";
+    if (login.indexOf("[bot]") !== -1) return true;
+    return /^merge queue:/i.test(item.title || "");
+  }
+  function fillWeekTable(range, prs, issues, releases, commentPages) {
+    var modal = ensureWeekModal();
+    var note = document.getElementById("gl-week-note");
+    var body = document.getElementById("gl-week-body");
+    body.textContent = "";
+    var notes = commentsByIssue(commentPages);
+    var rows = [];
+    (releases || []).forEach(function (release) {
+      var published = (release.published_at || "").slice(0, 10);
+      if (release.draft || release.prerelease) return;
+      if (!published || published < range.since || published > range.until) return;
+      rows.push({kind: "Release", label: release.tag_name || release.name, url: release.html_url, title: release.name || release.tag_name || "Release", updated: published, status: "Released", update: releaseUpdate(release)});
+    });
+    ((prs && prs.items) || []).forEach(function (item) {
+      if (isWeekNoise(item)) return;
+      rows.push({kind: "Pull request", label: "#" + item.number, url: item.html_url, title: item.title || "", updated: (item.updated_at || "").slice(0, 10), status: item.state === "open" ? "Open" : "Closed", update: weekUpdate(item, range, notes)});
+    });
+    ((issues && issues.items) || []).forEach(function (item) {
+      if (item.pull_request || isWeekNoise(item)) return;
+      rows.push({kind: "Issue", label: "#" + item.number, url: item.html_url, title: item.title || "", updated: (item.updated_at || "").slice(0, 10), status: item.state === "open" ? "Open" : "Closed", update: weekUpdate(item, range, notes)});
+    });
+    rows.sort(function (a, b) {
+      if (a.kind === "Release" && b.kind !== "Release") return -1;
+      if (b.kind === "Release" && a.kind !== "Release") return 1;
+      if (a.updated < b.updated) return 1;
+      if (a.updated > b.updated) return -1;
+      return 0;
+    });
+    note.textContent = "GuideLLM activity from " + range.since + " through " + range.until + ". " + rows.length + " items. Merge-queue bot entries are omitted.";
+    if (!rows.length) {
+      body.textContent = "No GuideLLM activity was updated in this window.";
+      modal.hidden = false;
+      return;
+    }
+    var table = document.createElement("table");
+    var thead = document.createElement("thead");
+    var hr = document.createElement("tr");
+    ["Item", "Title", "What changed", "Updated", "Status", "Type"].forEach(function (name) {
+      var th = document.createElement("th");
+      th.textContent = name;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    rows.forEach(function (row) {
+      var tr = document.createElement("tr");
+      var item = document.createElement("td");
+      var link = document.createElement("a");
+      link.href = row.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = row.label;
+      item.appendChild(link);
+      var titleCell = document.createElement("td");
+      titleCell.textContent = row.title;
+      var change = document.createElement("td");
+      change.className = "gl-change";
+      change.textContent = row.update || "";
+      var updated = document.createElement("td");
+      updated.textContent = row.updated;
+      var status = document.createElement("td");
+      status.textContent = row.status;
+      status.className = row.status === "Open" ? "gl-open" : "gl-closed";
+      var kind = document.createElement("td");
+      kind.textContent = row.kind;
+      [item, titleCell, change, updated, status, kind].forEach(function (td) { tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    body.appendChild(table);
+    modal.hidden = false;
+  }
+  function openWeekStatus() {
+    if (weekLoading) return;
+    weekLoading = true;
+    var button = document.querySelector(".gl-week");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Loading status...";
+    }
+    var range = weekWindow();
+    Promise.all([
+      githubJson("https://api.github.com/search/issues?q=" + encodeURIComponent("repo:vllm-project/guidellm is:pr updated:>=" + range.since) + "&per_page=100&sort=updated"),
+      githubJson("https://api.github.com/search/issues?q=" + encodeURIComponent("repo:vllm-project/guidellm is:issue updated:>=" + range.since) + "&per_page=100&sort=updated"),
+      githubJson("https://api.github.com/repos/vllm-project/guidellm/releases?per_page=30"),
+      commentPage(range, 1),
+      commentPage(range, 2),
+      commentPage(range, 3)
+    ]).then(function (result) {
+      weekLoading = false;
+      var current = document.querySelector(".gl-week");
+      if (current) {
+        current.disabled = false;
+        current.textContent = "Last Week Status";
+      }
+      fillWeekTable(range, result[0], result[1], result[2], [result[3], result[4], result[5]]);
+    }).catch(function (error) {
+      weekLoading = false;
+      var current = document.querySelector(".gl-week");
+      if (current) {
+        current.disabled = false;
+        current.textContent = "Last Week Status";
+        current.title = error && error.message ? error.message : "Could not load last week's activity";
+      }
+      var modal = ensureWeekModal();
+      document.getElementById("gl-week-note").textContent = error && error.message ? error.message : "Could not load last week's activity.";
+      document.getElementById("gl-week-body").textContent = "";
+      modal.hidden = false;
+    });
+  }
+
   function render() {
     var rows = filtered();
     var openCount = data.filter(function (row) { return row.status === "Open"; }).length;
@@ -381,6 +720,13 @@ weight: -2
     if (updateNote) updateButton.title = updateNote;
     updateButton.addEventListener("click", runUpdate);
     pills.appendChild(updateButton);
+    var weekButton = document.createElement("button");
+    weekButton.type = "button";
+    weekButton.className = "gl-update gl-week";
+    weekButton.textContent = weekLoading ? "Loading status..." : "Last Week Status";
+    weekButton.disabled = weekLoading;
+    weekButton.addEventListener("click", openWeekStatus);
+    pills.appendChild(weekButton);
     [["Showing " + rows.length, ""], ["Open " + openCount, ""], ["Closed " + (data.length - openCount), ""]].forEach(function (item) {
       var pill = document.createElement("span");
       pill.className = "gl-pill";
